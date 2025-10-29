@@ -1,4 +1,4 @@
-POST http://artrackerin.cairnsgames.co.za/php/in.php?mode=test
+POST http://localhost/artracker-incoming/php/in.php?mode=test
 Content-Type: application/json
 
 [{"serial":"0000437417","imei":"55554944299561",

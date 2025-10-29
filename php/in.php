@@ -1,8 +1,8 @@
 <?php
 
-include_once("./dbconfig.php");
-include_once("./dbconnection.php");
-include_once("./utils.php");
+include_once __DIR__ . "/dbconfig.php";
+include_once __DIR__ . "/dbconnection.php";
+include_once __DIR__ . "/utils.php";
 
 $get = $_GET;
 $post = $_POST;
