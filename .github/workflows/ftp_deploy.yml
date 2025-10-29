@@ -48,14 +48,14 @@ jobs:
     - name: Build config.php file
       id: build-config
       run: |
-        echo "<?php" > php/config.php
-        echo "" >> php/config.php
-        echo "\$dbconfig = [" >> php/config.php
-        echo "    'db_host' => '${{ env.MYSQL_HOST }}'," >> php/config.php
-        echo "    'db_name' => '${{ env.MYSQL_DATABASE }}'," >> php/config.php
-        echo "    'db_user' => '${{ env.MYSQL_USERNAME }}'," >> php/config.php
-        echo "    'db_pass' => '${{ env.MYSQL_PASSWORD }}'," >> php/config.php
-        echo "];" >> php/config.php
+        echo "<?php" > config.php
+        echo "" >> config.php
+        echo "\$dbconfig = [" >> config.php
+        echo "    'db_host' => '${{ env.MYSQL_HOST }}'," >> config.php
+        echo "    'db_name' => '${{ env.MYSQL_DATABASE }}'," >> config.php
+        echo "    'db_user' => '${{ env.MYSQL_USERNAME }}'," >> config.php
+        echo "    'db_pass' => '${{ env.MYSQL_PASSWORD }}'," >> config.php
+        echo "];" >> config.php
 
     - name: FTP Deploy PHP Files
       uses: SamKirkland/FTP-Deploy-Action@v4.3.0

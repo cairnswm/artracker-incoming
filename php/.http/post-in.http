@@ -1,4 +1,4 @@
-POST http://localhost/artracker-incoming/php/in.php?mode=test
+POST http://artrackerin.cairnsgames.co.za/php/in.php?mode=test
 Content-Type: application/json
 
 [{"serial":"0000437417","imei":"55554944299561","objectName":"0000437417","objectDesc":"297","objectGroups":["Ready to Race KRC"],"timestamp":"2023-11-14 09:38:07.287","latitude":"-25.66189","longitude":"28.61841","speed":0,"altitude":"0","direction":0,"started":true,"hardware":"RPi BLE/RFID","hardwareInputs":{"Signal level":"-55","Message Type":"2","Tower":"297","Altitude":"0"}}]
