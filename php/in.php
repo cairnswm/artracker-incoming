@@ -9,13 +9,27 @@ $post = $_POST;
 $headers = getallheaders();
 $input = file_get_contents("php://input");
 
+// Determine client IP address, prefer X-Forwarded-For when present
+$ip_address = null;
+if (!empty($headers['X-Forwarded-For'])) {
+  // X-Forwarded-For may contain a comma-separated list; take the first one
+  $parts = explode(',', $headers['X-Forwarded-For']);
+  $ip_address = trim($parts[0]);
+} elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+  $parts = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']);
+  $ip_address = trim($parts[0]);
+} elseif (!empty($_SERVER['REMOTE_ADDR'])) {
+  $ip_address = $_SERVER['REMOTE_ADDR'];
+}
+
 try {
-  $sql = "insert into raw (get, post, data, headers) values (?, ?, ?, ?)";
+  $sql = "insert into raw (get, post, data, headers, ip_address) values (?, ?, ?, ?, ?)";
   $params = [
     json_encode($get),
     json_encode($post),
     $input,
-    json_encode($headers)
+    json_encode($headers),
+    $ip_address
   ];
 
   $stmt = executeSQL($sql, $params);
