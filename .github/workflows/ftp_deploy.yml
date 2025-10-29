@@ -1,0 +1,74 @@
+name: FTP Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  ftp-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Fetch FTP and config variables
+      id: fetch-config
+      run: |
+        curl -X GET http://repo.cairnsgames.co.za/php/api.php/properties \
+          -H "Content-Type: application/json" \
+          -H "apikey: ${{ secrets.API_KEY }}" \
+          -o config.json
+
+    - name: Print fetched config.json
+      run: |
+        cat config.json
+
+    - name: Parse config variables
+      id: parse-config
+      run: |
+        FTP_SERVER=$(jq -r '.[] | select(.name=="FTP_SERVER") | .value' config.json)
+        FTP_USERNAME=$(jq -r '.[] | select(.name=="FTP_USERNAME") | .value' config.json)
+        FTP_PASSWORD=$(jq -r '.[] | select(.name=="FTP_PASSWORD") | .value' config.json)
+        PHP_DIR=$(jq -r '.[] | select(.name=="PHP_DIR") | .value' config.json)
+        MYSQL_HOST=$(jq -r '.[] | select(.name=="MYSQL_HOST") | .value' config.json)
+        MYSQL_DATABASE=$(jq -r '.[] | select(.name=="MYSQL_DATABASE") | .value' config.json)
+        MYSQL_USERNAME=$(jq -r '.[] | select(.name=="MYSQL_USERNAME") | .value' config.json)
+        MYSQL_PASSWORD=$(jq -r '.[] | select(.name=="MYSQL_PASSWORD") | .value' config.json)
+        echo "FTP_SERVER=$FTP_SERVER" >> $GITHUB_ENV
+        echo "FTP_USERNAME=$FTP_USERNAME" >> $GITHUB_ENV
+        echo "FTP_PASSWORD=$FTP_PASSWORD" >> $GITHUB_ENV
+        echo "PHP_DIR=$PHP_DIR" >> $GITHUB_ENV
+        echo "MYSQL_HOST=$MYSQL_HOST" >> $GITHUB_ENV
+        echo "MYSQL_DATABASE=$MYSQL_DATABASE" >> $GITHUB_ENV
+        echo "MYSQL_USERNAME=$MYSQL_USERNAME" >> $GITHUB_ENV
+        echo "MYSQL_PASSWORD=$MYSQL_PASSWORD" >> $GITHUB_ENV
+
+    - name: Build config.php file
+      id: build-config
+      run: |
+        echo "<?php" > php/config.php
+        echo "" >> php/config.php
+        echo "\$dbconfig = [" >> php/config.php
+        echo "    'db_host' => '${{ env.MYSQL_HOST }}'," >> php/config.php
+        echo "    'db_name' => '${{ env.MYSQL_DATABASE }}'," >> php/config.php
+        echo "    'db_user' => '${{ env.MYSQL_USERNAME }}'," >> php/config.php
+        echo "    'db_pass' => '${{ env.MYSQL_PASSWORD }}'," >> php/config.php
+        echo "];" >> php/config.php
+
+    - name: FTP Deploy PHP Files
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.0
+      with:
+        server: ${{ env.FTP_SERVER }}
+        username: ${{ env.FTP_USERNAME }}
+        password: ${{ env.FTP_PASSWORD }}
+        local-dir: ./
+        server-dir: ${{ env.PHP_DIR }}
+        exclude: |
+          .git/**
+          .github/**
+          assets/**
+          index.html
+          README.md
+        dangerous-clean-slate: true
