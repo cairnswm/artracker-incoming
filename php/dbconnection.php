@@ -9,7 +9,7 @@ function getConnection() {
     
     if (!isset($conn)) {
         global $dbconfig;
-        $conn = new mysqli($dbconfig["server"], $dbconfig["username"], $dbconfig["password"], $dbconfig["database"]);
+        $conn = new mysqli($dbconfig["db_host"], $dbconfig["db_user"], $dbconfig["db_pass"], $dbconfig["db_name"]);
         
         if ($conn->connect_error) {
             throw new Exception("Connection failed: " . $conn->connect_error);
