@@ -1,8 +1,23 @@
 <?php
 
 
-include_once "./dbconfig.php";
 global $conn;
+
+// Load dbconfig from same directory as this file. If not present, fall back to
+// environment variables so CLI invocations work regardless of working dir.
+$cfgPath = __DIR__ . '/dbconfig.php';
+if (file_exists($cfgPath)) {
+    require_once $cfgPath;
+}
+
+if (!isset($dbconfig) || !is_array($dbconfig)) {
+    $dbconfig = [
+        'db_host' => getenv('DB_HOST') ?: getenv('DB_SERVER') ?: '127.0.0.1',
+        'db_user' => getenv('DB_USER') ?: 'root',
+        'db_pass' => getenv('DB_PASS') ?: '',
+        'db_name' => getenv('DB_NAME') ?: '',
+    ];
+}
 
 function getConnection() {
     global $conn;
