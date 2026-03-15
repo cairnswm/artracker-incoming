@@ -1,0 +1,2 @@
+GET http://localhost/artracker-incoming/php/batch.php
+Accept: application/json

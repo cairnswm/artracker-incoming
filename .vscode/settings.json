@@ -1,0 +1,12 @@
+{
+  "chat.tools.terminal.autoApprove": {
+    "/^php -l \\.\\\\php\\\\batch\\\\manager\\.php; php \\.\\\\php\\\\batch\\.php$/": {
+      "approve": true,
+      "matchCommandLine": true
+    },
+    "/^php -l \\.\\\\php\\\\batch\\\\run_job\\.php; php \\.\\\\php\\\\batch\\.php$/": {
+      "approve": true,
+      "matchCommandLine": true
+    }
+  }
+}

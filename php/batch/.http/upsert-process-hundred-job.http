@@ -1,0 +1,16 @@
+POST http://localhost/artracker-incoming/php/batch/api.php?action=upsert_job
+Content-Type: application/json
+Accept: application/json
+
+{
+  "name": "Process Hundred Every 10s",
+  "is_active": true,
+  "run_every_seconds": 10,
+  "max_execution_seconds": 60,
+  "allow_parallel": false,
+  "file_path": "batch/jobs.php",
+  "function_name": "batch_job_process_hundred",
+  "params": {
+    "limit": 100
+  }
+}

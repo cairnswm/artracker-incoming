@@ -1,0 +1,2 @@
+GET http://localhost/artracker-incoming/php/batch/api.php?action=list_runs&job_id=1&limit=20
+Accept: application/json

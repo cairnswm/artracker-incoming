@@ -1,7 +1,7 @@
-POST http://artrackerin.cairnsgames.co.za/php/in.php?mode=test
+POST http://artrackerin.cairnsgames.co.za/php/in.php?mode=online
 Content-Type: application/json
 
-[{"serial":"0000437417","imei":"55554944299561",
+{"serial":"0000437417","imei":"55554944299561",
 "objectName":"0000437417","objectDesc":"297",
 "latitude":"-25.66189","longitude":"28.61841",
-"speed":0,"altitude":"0","direction":0,"started":true}]
+"speed":0,"altitude":"0","direction":0,"started":true}

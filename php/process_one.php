@@ -43,10 +43,10 @@ if (!empty($result['success'])) {
         $createdAt = isset($row['created_at']) ? $row['created_at'] : null;
 
         $procSql = "INSERT INTO processed
-            (data, `get`, `post`, headers, ip_address, status, processed_at, created_at, modified_at)
-            VALUES (?, ?, ?, ?, ?, ?, NOW(), ?, NOW())";
+            (raw_id, data, `get`, `post`, headers, ip_address, status, processed_at, created_at, modified_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), ?, NOW())";
 
-        executeSQL($procSql, [$dataVal, $getVal, $postVal, $headersVal, $ipVal, 'processed', $createdAt]);
+        executeSQL($procSql, [isset($row['id']) ? (string)$row['id'] : null, $dataVal, $getVal, $postVal, $headersVal, $ipVal, 'processed', $createdAt]);
     } catch (Exception $e) {
         error_log('process_one: failed to insert into processed for raw id=' . ($row['id'] ?? '') . ' error=' . $e->getMessage());
     }
@@ -64,8 +64,8 @@ if (!empty($result['success'])) {
     // processing failed — insert into process_error
     try {
         $errSql = "INSERT INTO process_error
-            (data, `get`, `post`, headers, ip_address, `error`, created_at, modified_at)
-            VALUES (?, ?, ?, ?, ?, ?, NOW(), NOW())";
+            (raw_id, data, `get`, `post`, headers, ip_address, `error`, created_at, modified_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW())";
 
         $dataVal = isset($row['data']) ? $row['data'] : '';
         $getVal = isset($row['get']) ? $row['get'] : '';
@@ -74,7 +74,7 @@ if (!empty($result['success'])) {
         $ipVal = isset($row['ip_address']) ? $row['ip_address'] : '';
         $errMsg = isset($result['error']) ? $result['error'] : (isset($result['message']) ? $result['message'] : 'processing_failed');
 
-        executeSQL($errSql, [$dataVal, $getVal, $postVal, $headersVal, $ipVal, $errMsg]);
+        executeSQL($errSql, [isset($row['id']) ? (string)$row['id'] : null, $dataVal, $getVal, $postVal, $headersVal, $ipVal, $errMsg]);
     } catch (Exception $e) {
         error_log('process_one: failed to insert process_error for raw id=' . ($row['id'] ?? '') . ' error=' . $e->getMessage());
     }
