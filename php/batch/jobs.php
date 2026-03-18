@@ -442,3 +442,108 @@ function batch_job_process_race(array $params = [])
 
     return create_or_update_race($eventId);
 }
+
+function batch_job_update_team_track(array $params = [])
+{
+    $requestedTeamId = (int)batch_get_param($params, 'team_id', 0);
+    $start = batch_get_param($params, 'start', null);
+    $end = batch_get_param($params, 'end', null);
+
+    // helper to read stmt rows (compatible with mysqlnd or not)
+    $stmt_rows = function($stmt) {
+        $rows = [];
+        if (method_exists($stmt, 'get_result')) {
+            $res = $stmt->get_result();
+            while ($r = $res->fetch_assoc()) $rows[] = $r;
+            return $rows;
+        }
+        $meta = $stmt->result_metadata();
+        if (!$meta) return $rows;
+        $row = [];
+        $binds = [];
+        while ($field = $meta->fetch_field()) {
+            $row[$field->name] = null;
+            $binds[] = &$row[$field->name];
+        }
+        call_user_func_array([$stmt, 'bind_result'], $binds);
+        while ($stmt->fetch()) {
+            $copy = [];
+            foreach ($row as $k => $v) $copy[$k] = $v;
+            $rows[] = $copy;
+        }
+        return $rows;
+    };
+
+    // determine team ids to process
+    $teamIds = [];
+    if ($requestedTeamId > 0) {
+        $teamIds[] = $requestedTeamId;
+    } else {
+        $tstmt = executeSQL('SELECT id FROM teams');
+        $trows = $stmt_rows($tstmt);
+        $tstmt->close();
+        foreach ($trows as $tr) $teamIds[] = (int)$tr['id'];
+    }
+
+    $results = [];
+    foreach ($teamIds as $teamId) {
+        // Get devices for team
+        $devStmt = executeSQL('SELECT d.serial, d.imei FROM team_device td JOIN device d ON d.id = td.device_id WHERE td.team_id = ?', [(string)$teamId]);
+        $devices = $stmt_rows($devStmt);
+        $devStmt->close();
+
+        $trackPoints = [];
+        foreach ($devices as $dev) {
+            $serial = $dev['serial'];
+            $imei = $dev['imei'];
+
+            if ($start === null && $end === null) {
+                $sql = 'SELECT last_latitude, last_longitude, last_event_at FROM device_interval WHERE serial = ? AND imei = ? ORDER BY interval_start ASC';
+                $paramsQ = [$serial, $imei];
+            } elseif ($start !== null && $end === null) {
+                $sql = 'SELECT last_latitude, last_longitude, last_event_at FROM device_interval WHERE serial = ? AND imei = ? AND interval_start >= ? ORDER BY interval_start ASC';
+                $paramsQ = [$serial, $imei, $start];
+            } elseif ($start === null && $end !== null) {
+                $sql = 'SELECT last_latitude, last_longitude, last_event_at FROM device_interval WHERE serial = ? AND imei = ? AND interval_start <= ? ORDER BY interval_start ASC';
+                $paramsQ = [$serial, $imei, $end];
+            } else {
+                $sql = 'SELECT last_latitude, last_longitude, last_event_at FROM device_interval WHERE serial = ? AND imei = ? AND interval_start >= ? AND interval_start <= ? ORDER BY interval_start ASC';
+                $paramsQ = [$serial, $imei, $start, $end];
+            }
+
+            $stmt = executeSQL($sql, $paramsQ);
+            $intervals = $stmt_rows($stmt);
+            $stmt->close();
+
+            foreach ($intervals as $int) {
+                if ($int['last_latitude'] === null || $int['last_longitude'] === null || $int['last_event_at'] === null) continue;
+                $trackPoints[] = [
+                    'lat' => (float)$int['last_latitude'],
+                    'lng' => (float)$int['last_longitude'],
+                    'timestamp' => $int['last_event_at']
+                ];
+            }
+        }
+
+        usort($trackPoints, function ($a, $b) {
+            return strcmp($a['timestamp'], $b['timestamp']);
+        });
+
+        $trackJson = json_encode($trackPoints, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+
+        // Upsert into team_track
+        $existsStmt = executeSQL('SELECT id FROM team_track WHERE team_id = ? LIMIT 1', [(string)$teamId]);
+        $exists = $stmt_rows($existsStmt);
+        $existsStmt->close();
+
+        if (!empty($exists)) {
+            executeSQL('UPDATE team_track SET track = ?, modified_at = CURRENT_TIMESTAMP() WHERE team_id = ?', [$trackJson, (string)$teamId])->close();
+            $results[] = ['team_id' => $teamId, 'action' => 'updated', 'points' => count($trackPoints)];
+        } else {
+            executeSQL('INSERT INTO team_track (team_id, track, created_at, modified_at) VALUES (?, ?, NOW(), NOW())', [(string)$teamId, $trackJson])->close();
+            $results[] = ['team_id' => $teamId, 'action' => 'inserted', 'points' => count($trackPoints)];
+        }
+    }
+
+    return ['success' => true, 'processed' => count($teamIds), 'details' => $results];
+}

@@ -1,0 +1,15 @@
+### Upsert a team_track batch job (disabled)
+# Replace TEAM_ID with the numeric team id before running.
+POST http://localhost/artracker-incoming/php/batch/api.php?action=upsert_job
+Content-Type: application/json
+
+{
+  "name": "team_track_update_all",
+  "file_path": "php/batch/jobs.php",
+  "function_name": "batch_job_update_team_track",
+  "run_every_seconds": 3600,
+  "max_execution_seconds": 300,
+  "allow_parallel": 0,
+  "is_active": 0,
+  "params": {}
+}
