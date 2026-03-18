@@ -3,6 +3,7 @@
  * php/process_teamtrack.php
  *
  * Runs the `batch_job_update_team_track` batch job (from `php/batch/jobs.php`).
+ * ID: 4 in `batch_jobs` table. Accepts optional `team_id`, `start`, and `end`
  */
 
 require_once __DIR__ . '/batch/jobs.php';
