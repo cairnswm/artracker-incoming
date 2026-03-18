@@ -6,6 +6,8 @@ if (is_file($legacyDbPath)) {
     require_once __DIR__ . '/dbconnection.php';
 }
 
+// These are functions for managing manual batch runs
+
 function race_stmt_rows($stmt)
 {
     if (method_exists($stmt, 'get_result')) {
