@@ -45,3 +45,4 @@ try {
     echo json_encode(['success' => false, 'error' => $err]) . PHP_EOL;
     exit(1);
 }
+
