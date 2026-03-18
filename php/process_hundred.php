@@ -9,7 +9,7 @@
 require_once __DIR__ . '/batch/jobs.php';
 
 try {
-    $limit = 100;
+    $limit = 300;
     if (isset($argv) && count($argv) > 1) {
         $arg = intval($argv[1]);
         if ($arg > 0) $limit = $arg;

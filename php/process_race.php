@@ -1,8 +1,6 @@
 <?php
-require_once __DIR__ . '/../corsheaders.php';
+require_once __DIR__ . '/corsheaders.php';
 require_once __DIR__ . '/race_function.php';
-
-header('Content-Type: application/json; charset=utf-8');
 
 // Accept event id via GET or default to 1
 $eventId = isset($_GET['id']) ? intval($_GET['id']) : 1;

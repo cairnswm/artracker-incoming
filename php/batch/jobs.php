@@ -11,8 +11,8 @@ function batch_get_param(array $params, $key, $default = null)
 function batch_job_process_hundred(array $params = [])
 {
     $conn = getConnection();
-    $limit = (int)batch_get_param($params, 'limit', 100);
-    if ($limit <= 0) $limit = 100;
+    $limit = (int)batch_get_param($params, 'limit', 500);
+    if ($limit <= 0) $limit = 500;
 
     // Fetch rows
     $stmt = executeSQL('SELECT * FROM raw ORDER BY id DESC LIMIT ?', [(string)$limit]);
