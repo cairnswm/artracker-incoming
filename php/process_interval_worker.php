@@ -7,9 +7,13 @@
  * Usage: php process_interval_worker.php [minutes_window]
  */
 
+require_once __DIR__ . '/batch/run_logger.php';
 require_once __DIR__ . '/dbconnection.php';
 
 function nowMs() { return round(microtime(true) * 1000, 3); }
+
+// Hardcoded batch job id for this worker
+$BATCH_JOB_ID = 2;
 
 try {
     $conn = getConnection();
@@ -53,14 +57,19 @@ ON DUPLICATE KEY UPDATE
   raw_message = VALUES(raw_message),
   modified_at = NOW();";
 
+$runId = start_batch_run($BATCH_JOB_ID);
 $startMs = nowMs();
 try {
     $stmt = executeSQL($sql, [$windowStart, $windowEnd]);
     $affected = getConnection()->affected_rows;
     $stmt->close();
     $dur = nowMs() - $startMs;
-    echo json_encode(['success' => true, 'window_start' => $windowStart, 'window_end' => $windowEnd, 'affected' => $affected, 'duration_ms' => round($dur,3)]) . PHP_EOL;
+    $result = ['success' => true, 'window_start' => $windowStart, 'window_end' => $windowEnd, 'affected' => $affected, 'duration_ms' => round($dur,3)];
+    echo json_encode($result) . PHP_EOL;
+    finish_batch_run($runId, $BATCH_JOB_ID, 'success', (int)$dur, $result, null, null);
 } catch (Exception $e) {
-    echo json_encode(['success' => false, 'error' => $e->getMessage()]) . PHP_EOL;
+    $err = $e->getMessage();
+    echo json_encode(['success' => false, 'error' => $err]) . PHP_EOL;
+    finish_batch_run($runId, $BATCH_JOB_ID, 'failed', (int)(nowMs() - $startMs), null, null, $err);
     exit(1);
 }
